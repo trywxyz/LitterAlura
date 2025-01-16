@@ -1,19 +1,28 @@
 package br.com.alura.litter.alura.model;
 
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "authors")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Author {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonAlias("name")
     private String name;
-    private int birthYear;
-    private int deathYear;
+
+    @JsonProperty("birth_year")
+    private Integer birthYear;
+
+    @JsonProperty("death_year")
+    private Integer deathYear;
 
     @ManyToOne
     private Livro livro;

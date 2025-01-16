@@ -8,6 +8,7 @@ import br.com.alura.litter.alura.repository.LivroRepository;
 import br.com.alura.litter.alura.service.DataConvert;
 import br.com.alura.litter.alura.service.RequestAPI;
 
+import java.awt.print.Book;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +23,7 @@ public class Main {
     private DataConvert dataConvert = new DataConvert();
     private List<LivroDTO> livros = new ArrayList<>();
     private LivroRepository repository;
-    private final String URL = "https://gutendex.com/livros";
+    private final String URL = "https://gutendex.com/books?search=";
 
     public Main(LivroRepository repository) {
         this.repository = repository;
@@ -79,38 +80,44 @@ public class Main {
     }
 
 
-
-
     private Info getBooksFromAPI(String title) {
-        var json = requestApi.getData(URL + "?search=%10" + title.replace(" ", "+"));
+        var json = requestApi.getData(URL + title.replace(" ", "+"));
+        System.out.println("Json Recebido: " + json);// " "
         return dataConvert.getData(json, Info.class);
+
     }
 
 
     private Optional<Livro> getBookData(Info info, String title) {
-        return info.results().stream().filter(b -> b.getTitle().toLowerCase().contains(title.toLowerCase())).map(b -> new Livro(b.getTitle(), b.getAuthors(), b.getDownloads(), b.getLanguage())).findFirst();
+        return info.results().stream()
+                .filter(b -> b.getTitle().toLowerCase().contains(title.toLowerCase()))
+                .map(b -> new Livro(
+                        b.getTitle(),
+                        b.getAuthor(),
+                        b.getDownloads()
+                )).findFirst();
     }
 
     private Optional<Livro> searcBookByTitle(String title) {
         Info infobook = getBooksFromAPI(title);
         Optional<Livro> book = getBookData(infobook, title);
 
-        if(book.isPresent()){
+        if (book.isPresent()) {
             var result = repository.save(book.get());
             System.out.println(result);
-        }else{
+        } else {
             System.out.println("Livro não encontrado");
         }
         return book;
     }
 
 
-    private void listBooks(){
+    private void listBooks() {
         var books = repository.findAll();
 
-        if(books.isEmpty()){
+        if (books.isEmpty()) {
             System.out.println("Lista de livros vazia!");
-        }else{
+        } else {
             System.out.println(books);
         }
 
@@ -119,25 +126,25 @@ public class Main {
     private void listAuthors() {
         var books = repository.findAll();
 
-        if(books.isEmpty()){
+        if (books.isEmpty()) {
             System.out.println("Lista sem autores!");
-        }else{
-            books.forEach(b -> b.getAuthors().forEach(System.out::println));
+        } else {
+            books.forEach(b -> b.getAuthor().forEach(System.out::println));
         }
     }
 
     private void listAuthorsLifed() {
-       var books = repository.findAll();
+        var books = repository.findAll();
 
-       if(books.isEmpty()){
-           System.out.println("Lista sem autores vivos!");
-       }else{
-           books.forEach(b -> b.getAuthors().forEach(a -> {
-               if(a.getDeathYear() != 0){
-                   System.out.println(a);
-               }
-           }));
-       }
+        if (books.isEmpty()) {
+            System.out.println("Lista sem autores vivos!");
+        } else {
+            books.forEach(b -> b.getAuthor().forEach(a -> {
+                if (a.getDeathYear() != 0) {
+                    System.out.println(a);
+                }
+            }));
+        }
     }
 
     private void listBooksByLanguage() {
@@ -160,8 +167,6 @@ public class Main {
 
 
     }
-
-
 
 
 }

@@ -1,5 +1,6 @@
 package br.com.alura.litter.alura.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -8,6 +9,7 @@ import java.util.List;
 @Entity
 @Table(name = "livros")
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Livro {
 
     @Id
@@ -32,6 +34,9 @@ public class Livro {
         this.language = language;
     }
 
+    public Livro(String title, List<Author> author, Object o) {
+        this.title = title;
+    }
 
     public Long getId() {
         return id;
@@ -49,7 +54,7 @@ public class Livro {
         this.title = title;
     }
 
-    public List<Author> getAuthors() {
+    public List<Author> getAuthor() {
         return authors;
     }
 
