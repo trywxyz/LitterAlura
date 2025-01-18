@@ -1,12 +1,12 @@
-# LitterAluraAqui está um modelo de `README` bem estruturado para o seu projeto:
+# LitterAlura
 
 ---
 
-# Litter - Aplicação de Gerenciamento de Livros
+# Litter Alura - Aplicação de Gerenciamento de Livros
 
 ## Descrição
 
-O projeto **Litter** é uma aplicação desenvolvida em Java que permite buscar livros por título, listar livros registrados, autores, e realizar outras operações relacionadas a livros, utilizando uma API externa para buscar informações sobre livros.
+Este projeto é uma aplicação desenvolvida para gerenciar informações sobre livros e autores. Ele permite que você cadastre livros, autores e pesquise por livros baseados no autor, idioma e downloads. A aplicação foi desenvolvida com Spring Boot, JPA e Hibernate.
 
 ## Funcionalidades
 
@@ -18,13 +18,15 @@ A aplicação oferece as seguintes funcionalidades através de um menu interativ
 4. **Listar autores vivos em determinado ano**: Exibe os autores que estão vivos em um determinado ano.
 5. **Listar livros por idiomas**: Exibe os livros registrados filtrados por idioma.
 
-## Tecnologias Utilizadas
+## **Tecnologias Utilizadas**
 
-- **Java**: Linguagem de programação principal do projeto.
-- **Spring Framework**: Utilizado no repositório para o gerenciamento de dados de livros.
-- **API externa**: Para buscar informações de livros através de uma URL específica.
-- **Scanner**: Para interação com o usuário via linha de comando.
-- **JSON**: Para troca de informações entre a API e a aplicação.
+- **Java 17**
+- **Spring Boot 3.x**
+- **JPA (Java Persistence API)**
+- **Hibernate**
+- **H2 Database (para desenvolvimento)**
+- **Jackson (para mapeamento JSON)**
+- **Maven** (para gerenciamento de dependências)
 
 ## Estrutura do Código
 
@@ -43,6 +45,8 @@ A aplicação oferece as seguintes funcionalidades através de um menu interativ
 1. **Menu**: O usuário é apresentado com um menu de opções. O programa aguarda a entrada de uma opção numérica.
 2. **Busca de Livro**: Se o usuário optar por buscar um livro por título, o programa faz uma requisição para a API externa e armazena o livro retornado no repositório.
 3. **Listagem**: O programa permite listar os livros, autores registrados, ou filtrar autores vivos em determinado ano.
+
+![image](https://github.com/user-attachments/assets/c7b1cdd7-4edd-4726-901c-20c1218413a7)
 
 ## Como Rodar
 
