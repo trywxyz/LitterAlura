@@ -1,33 +1,54 @@
 package br.com.alura.litter.alura.model;
 
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "authors")
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(ignoreUnknown = true) // Mantido para ignorar campos não mapeados no JSON
 public class Author {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonAlias("name")
     private String name;
 
-    @JsonProperty("birth_year")
     private Integer birthYear;
 
-    @JsonProperty("death_year")
     private Integer deathYear;
 
-    @ManyToOne
-    private Livro livro;
+    @ManyToOne(fetch = FetchType.EAGER) // Uso de LAZY para evitar carregamento desnecessário
+    private Book book;
 
+    // Construtor padrão
+    public Author() {}
 
+    // Construtor parametrizado
+    public Author(Book book, Integer deathYear, Integer birthYear, String name, Long id) {
+        this.book = book;
+        this.deathYear = deathYear;
+        this.birthYear = birthYear;
+        this.name = name;
+        this.id = id;
+    }
+
+    // Construtor para conversão de DTO (corrigido)
+    public Author(AuthorDTO dadosAutor) {
+        this.name = dadosAutor.name();
+        this.birthYear = dadosAutor.birthYear();
+        this.deathYear = dadosAutor.deathYear();
+    }
+
+    @Override
+    public String toString() {
+        return "Author: Id=" + id + ", Name='" + name + '\'' +
+                ", BirthYear=" + birthYear + ", DeathYear=" + deathYear +
+                ", Book=" + (book != null ? book.getTitle() : "None");
+    }
+
+    // Getters e Setters
     public Long getId() {
         return id;
     }
@@ -44,27 +65,27 @@ public class Author {
         this.name = name;
     }
 
-    public int getBirthYear() {
+    public Integer getBirthYear() {
         return birthYear;
     }
 
-    public void setBirthYear(int birthYear) {
+    public void setBirthYear(Integer birthYear) {
         this.birthYear = birthYear;
     }
 
-    public int getDeathYear() {
+    public Integer getDeathYear() {
         return deathYear;
     }
 
-    public void setDeathYear(int deathYear) {
+    public void setDeathYear(Integer deathYear) {
         this.deathYear = deathYear;
     }
 
-    public Livro getLivro() {
-        return livro;
+    public Book getBook() {
+        return book;
     }
 
-    public void setLivro(Livro livro) {
-        this.livro = livro;
+    public void setBook(Book book) {
+        this.book = book;
     }
 }

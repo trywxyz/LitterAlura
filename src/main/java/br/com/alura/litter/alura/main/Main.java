@@ -1,177 +1,125 @@
 package br.com.alura.litter.alura.main;
 
 
-import br.com.alura.litter.alura.model.Info;
-import br.com.alura.litter.alura.model.Livro;
-import br.com.alura.litter.alura.model.LivroDTO;
-import br.com.alura.litter.alura.repository.LivroRepository;
+import br.com.alura.litter.alura.model.*;
+import br.com.alura.litter.alura.repository.AuthorRepository;
+import br.com.alura.litter.alura.repository.BookRepository;
 import br.com.alura.litter.alura.service.DataConvert;
 import br.com.alura.litter.alura.service.RequestAPI;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Scanner;
 
+@Component
 public class Main {
 
-    private Scanner read = new Scanner(System.in);
-    private RequestAPI requestApi = new RequestAPI();
-    private DataConvert dataConvert = new DataConvert();
-    private List<LivroDTO> livros = new ArrayList<>();
-    private LivroRepository repository;
-    private final String URL = "https://gutendex.com/books?search=";
+    private final Scanner leitura = new Scanner(System.in);
+    private final RequestAPI consumoApi = new RequestAPI();
+    private final DataConvert conversor = new DataConvert();
+    private final String endereco = "https://gutendex.com/books/?search=";
 
-    public Main(LivroRepository repository) {
-        this.repository = repository;
-    }
-
+    @Autowired
+    private BookRepository livroRepository;
+    @Autowired
+    private AuthorRepository autorRepository;
 
     public void menu() {
-        var opcao = -1;
-
-        while (opcao != 0) {
-            var menu = """
-                    1. Buscar Livro por título
-                    2. Listar livros registrados
-                    3. Listar autores registrados
-                    4. Listar autores vivos em determinado ano
-                    5. Listar livros por idiomas
-                    0. Sair
-                    
-                    """;
-
-
-            System.out.println(menu);
-            opcao = read.nextInt();
-            read.nextLine();
-
+        int opcao;
+        do {
+            System.out.println("""
+                    *** Liter Alura Challenge ***
+                    1 - Buscar livros por título
+                    2 - Buscar livros por autores
+                    3 - Listar livros
+                    4 - Listar autores
+                    5 - Listar autores vivos em determinado ano
+                    9 - Sair
+                    """);
+            opcao = leitura.nextInt();
+            leitura.nextLine();
 
             switch (opcao) {
-                case 1:
-                    System.out.println("Digite o título do livro:");
-                    searcBookByTitle(read.nextLine());
-                    break;
-                case 2:
-                    listBooks();
-                    break;
-                case 3:
-                    listAuthors();
-                    break;
-                case 4:
-                    listAuthorsLifed();
-                    break;
-                case 5:
-                    listBooksByLanguage();
-                    break;
-                case 0:
-                    System.out.println("Saindo...");
-                    break;
-                default:
-                    System.out.println("Não encontrei essa opção! Tente novamente");
-
+                case 1 -> searchBookInApi();
+                case 2 -> searchAuthors();
+                case 3 -> listBooks();
+                case 4 -> listAuthors();
+                case 5 -> searchForAuthorsLifed();
+                case 9 -> System.out.println("Saindo da pesquisa!");
+                default -> System.out.println("Opção inválida.");
             }
+        } while (opcao != 9);
+    }
 
+    private void searchBookInApi() {
+        System.out.println("Qual o nome do livro para buscar?");
+        String nomeLivro = leitura.nextLine();
+        String json = consumoApi.obterDados(endereco + nomeLivro.replace(" ", "+"));
+
+        ResultsDTO dadosResultado = conversor.obterDados(json, ResultsDTO.class);
+        if (dadosResultado.livro().isEmpty()) {
+            System.out.println("Nenhum livro encontrado.");
+            return;
         }
 
+        dadosResultado.livro().forEach(dadosLivro -> {
+            Book livro = new Book(dadosLivro);
+            dadosLivro.authors().forEach(dadosAutor -> {
+                Author autor = new Author(dadosAutor);
+                autor.setBook(livro);
+                livro.getAuthors().add(autor);
+            });
+            livroRepository.save(livro);
+            System.out.println("Livro salvo: " + livro.getTitle());
+        });
     }
 
+    private void searchAuthors() {
+        System.out.println("Digite o nome do autor desejado:");
+        String nomeAutor = leitura.nextLine();
+        List<Book> livrosEncontrados = livroRepository.findByAuthorNameContainingIgnoreCase(nomeAutor);
 
-    private Info getBooksFromAPI(String title) {
-        var json = requestApi.getData(URL + title.replace(" ", "+"));
-//        System.out.println("Json Recebido: " + json);// " "
-        return dataConvert.getData(json, Info.class);
-
-    }
-
-
-    private Optional<Livro> getBookData(Info info, String title) {
-        return info.results().stream()
-                .filter(b -> b.getTitle().toLowerCase().contains(title.toLowerCase()))
-                .map(b -> new Livro(
-                        b.getTitle(),
-                        b.getAuthor(),
-                        b.getDownloads()
-                )).findFirst();
-    }
-
-    private Optional<Livro> searcBookByTitle(String title) {
-        Info infobook = getBooksFromAPI(title);
-        Optional<Livro> book = getBookData(infobook, title);
-
-        if (book.isPresent()) {
-            var result = repository.save(book.get());
-            System.out.println("Seu Livro foi salvo com sucesso!");
-            System.out.println("Seu Livro: " + result.getTitle());
+        if (livrosEncontrados.isEmpty()) {
+            System.out.println("Nenhum livro encontrado para o autor " + nomeAutor);
         } else {
-            System.out.println("Livro não encontrado");
+            livrosEncontrados.forEach(livro -> {
+                System.out.println("Título: " + livro.getTitle());
+                System.out.println("Idioma: " + livro.getLanguage());
+                System.out.println("Total de Downloads: " + livro.getDownloads());
+                System.out.println("-----------");
+            });
         }
-        return book;
     }
 
     private void listBooks() {
-        var books = repository.findAll();
-
-        if (books.isEmpty()) {
-            System.out.println("Lista de livros vazia!");
+        List<Book> livros = livroRepository.findAll();
+        if (livros.isEmpty()) {
+            System.out.println("Nenhum livro encontrado!");
         } else {
-
-            books.forEach(System.out::println);
+            livros.forEach(livro -> System.out.println("Título: " + livro.getTitle()));
         }
-
     }
 
     private void listAuthors() {
-        var books = repository.findAll();
-
-        if (books.isEmpty()) {
-            System.out.println("Lista sem autores!");
+        List<Author> autores = autorRepository.findAll();
+        if (autores.isEmpty()) {
+            System.out.println("Nenhum autor encontrado!");
         } else {
-            books.stream()
-                    .map(Livro::getAuthor)
-                    .distinct()
-                    .forEach(System.out::println);
+            autores.forEach(autor -> System.out.println("Autor: " + autor.getName() +
+                    " | Nascimento: " + autor.getBirthYear() +
+                    " | Falecimento: " + autor.getDeathYear()));
         }
     }
 
-    private void listAuthorsLifed() {
-        System.out.println("Digite o ano:");
-        int year = read.nextInt();
-        read.nextLine();
+    private void searchForAuthorsLifed() {
+        System.out.println("Digite o ano para busca:");
+        int anoBuscado = leitura.nextInt();
+        List<Author> autores = autorRepository.findAll();
 
-
-        var books = repository.findAll();
-        if (books.isEmpty()) {
-            System.out.println("Lista sem autores vivos!");
-        } else {
-            books = repository.findAll();
-            books.stream()
-                    .filter(b -> b.getAuthor().contains("(" + year))
-                    .map(Livro::getAuthor)
-                    .distinct()
-                    .forEach(System.out::println);
-        }
-    }
-
-
-    private void listBooksByLanguage() {
-        var books = repository.findAll();
-        books.stream()
-                .map(Livro::getLanguage)
-                .distinct()
-                .forEach(System.out::println);
+        autores.stream()
+                .filter(a -> a.getBirthYear() != null && a.getBirthYear() <= anoBuscado &&
+                        (a.getDeathYear() == null || a.getDeathYear() >= anoBuscado))
+                .forEach(autor -> System.out.println("Autor vivo: " + autor.getName() +  ",  Autor Data de Nascimento: " + autor.getBirthYear() + ", Autor Data de Falecimento: " +autor.getDeathYear()));
     }
 }
-
-// TESTE TESTE
-//        System.out.println("Qual a linguagem que você deseja?");
-//        var linguagem = read.nextLine();
-//
-//        var books = repository.findByLanguage(linguagem);
-//
-//        if(books.isEmpty()){
-//            System.out.println("Lista vazia!");
-//        }else{
-//            books.forEach(System.out::println);
-//        }
-

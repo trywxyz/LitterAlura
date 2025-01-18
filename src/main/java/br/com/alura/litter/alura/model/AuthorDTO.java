@@ -1,8 +1,12 @@
 package br.com.alura.litter.alura.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record AuthorDTO(
-        String name,
-        int birthYear,
-        int deathYear
+        @JsonAlias("name") String name,
+        @JsonAlias("birth_year") Integer birthYear,
+        @JsonAlias("death_year") Integer deathYear
 ) {
 }

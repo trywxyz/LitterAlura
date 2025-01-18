@@ -8,38 +8,21 @@ import java.net.http.HttpResponse;
 
 public class RequestAPI {
 
-    public String getData(String url) {
-        HttpClient client = HttpClient.newBuilder()
-                .followRedirects(HttpClient.Redirect.ALWAYS)
-                .build();
-
-
+    public String obterDados(String endereco){
+        HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
+                .uri(URI.create(endereco))
                 .build();
-
+        HttpResponse<String> response;
         try {
-            // Envia a requisição e obtém a resposta
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            // Verifica o código de status da resposta
-            if (response.statusCode() != 200) {
-                throw new RuntimeException("Erro ao consumir API: status " + response.statusCode());
-            }
-
-            // Obtém o corpo da resposta
-            String json = response.body();
-
-            // Verifica se o corpo é nulo ou vazio
-            if (json == null || json.trim().isEmpty()) {
-                throw new RuntimeException("Resposta da API está vazia.");
-            }
-
-            System.out.println("Resposta da API: " + json);
-            return json;
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("Erro ao enviar requisição: " + e.getMessage(), e);
+            response = client
+                    .send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e){
+            throw new RuntimeException(e);
         }
+
+        String json = response.body();
+        return json;
+
     }
 }
