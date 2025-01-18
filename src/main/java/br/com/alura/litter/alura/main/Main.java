@@ -101,7 +101,8 @@ public class Main {
 
         if (book.isPresent()) {
             var result = repository.save(book.get());
-            System.out.println(result.getTitle());
+            System.out.println("Seu Livro foi salvo com sucesso!");
+            System.out.println("Seu Livro: " + result.getTitle());
         } else {
             System.out.println("Livro não encontrado");
         }
@@ -114,6 +115,7 @@ public class Main {
         if (books.isEmpty()) {
             System.out.println("Lista de livros vazia!");
         } else {
+
             books.forEach(System.out::println);
         }
 
